@@ -1,1 +1,49 @@
+JENKINS
+
+#!/bin/bash
+sudo apt-get update
+sudo apt-get install openjdk-11-jdk -y
+sudo apt-get install maven -y
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt-get update
+sudo apt-get install jenkins -y
+sudo apt-get install git -y
+###
+
+NEXUS
+
+#!/bin/bash
+sudo yum update -y
+sudo yum install wget -y
+sudo yum install java-1.8.0-openjdk.x86_64 -y
+sudo mkdir /app && cd /app
+sudo wget -O nexus.tar.gz https://download.sonatype.com/nexus/3/latest-unix.tar.gz
+sudo tar -xvf nexus.tar.gz
+sudo mv nexus-3* nexus
+sudo adduser nexus
+sudo chown -R nexus:nexus /app/nexus
+sudo chown -R nexus:nexus /app/sonatype-work
+sudo vi  /app/nexus/bin/nexus.rc
+run_as_user="nexus"
+sudo vi /app/nexus/bin/nexus.vmoptions
+sudo vi /etc/systemd/system/nexus.service
+[Unit]
+Description=nexus service
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE=65536
+User=nexus
+Group=nexus
+ExecStart=/app/nexus/bin/nexus start
+ExecStop=/app/nexus/bin/nexus stop
+User=nexus
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+sudo chkconfig nexus on
+sudo systemctl start nexus
 
